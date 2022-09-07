@@ -46,20 +46,34 @@ function purchaseClicked(){
 updateCartTotal()
 }
 function updateCartTotal() {
-    var cartItemContainer = document.getElementsByClassName('cart-items')[0]
+    let cartItems = document.getElementsByClassName("cart-items")[0];
+  var cartRows = cartItems.querySelectorAll(".cart-row2");
+  let total = 0;
+  for (let i = 0;i < cartRows.length;i++) {
+    total +=
+      Number(
+        cartRows[i].querySelector(".cart-price").innerText
+      ) *
+      Number(
+        cartRows[i].querySelector(".cart-quantity-input").value
+      );
+  }
+  document.getElementsByClassName("cart-total-price")[0].innerText =
+    "$" + total;
+    //var cartItemContainer = document.getElementsByClassName('cart-items')[0]
      
-    var cartRows = cartItemContainer.getElementsByClassName('cart-row')
-    var total = 0
-    for (var i = 0; i < cartRows.length; i++) {
-        var cartRow = cartRows[i]
-        var priceElement = cartRow.getElementsByClassName('cart-price')[0]
-        var quantityElement = cartRow.getElementsByClassName('cart-quantity-input')[0]
-        var price = parseFloat(priceElement.innerText.replace('$', ''))
-        var quantity = quantityElement.value
-        total = total + (price * quantity)
-    }
-    total = Math.round(total * 100) / 100
-    document.getElementsByClassName('cart-total-price')[0].innerText = '$' + total
+    //var cartRows = cartItemContainer.getElementsByClassName('cart-row')
+    //var total = 0
+    //for (var i = 0; i < cartRows.length; i++) {
+        //var cartRow = cartRows[i]
+        //var priceElement = cartRow.getElementsByClassName('cart-price')[0]
+       // var quantityElement = cartRow.getElementsByClassName('cart-quantity-input')[0]
+       // var price = parseFloat(priceElement.innerText.replace('$', ''))
+       // var quantity = quantityElement.value
+       // total = total + (price * quantity)
+    //}
+   // total = Math.round(total * 100) / 100
+    //document.getElementsByClassName('cart-total-price')[0].innerText = '$' + total
 }
 var quantityInputs = document.getElementsByClassName('cart-quantity-input')
 for (var i = 0; i < quantityInputs.length; i++) {
@@ -108,14 +122,14 @@ close.addEventListener("click", () => {
 window.addEventListener('DOMContentLoaded',()=>{
     axios.get('http://localhost:3000/products')
     .then((productInfo)=>{
-         console.log(productInfo)
+        // console.log(productInfo)
         if(productInfo.request.status === 200)  { 
             const products = productInfo.data.products
-            console.log(products)
+            //console.log(products)
 
             const parent = document.getElementById('products')
 
-            products.forEach(products=>{
+            products.forEach((products)=>{
                 const childHTML = ` <div class="albums">
                 <h3 class="title">${products.title}</h3>
                 <img
@@ -125,7 +139,7 @@ window.addEventListener('DOMContentLoaded',()=>{
                 />
                 <div class="price">
                   <h4 class="amount">${products.price}$</h4>
-                  <button class="addcart">Add to Cart</button>
+                  <button class="addcart" onclick="addtocart(${products.id})">Add to Cart</button>
                 </div>
               </div>`
 
@@ -135,3 +149,78 @@ window.addEventListener('DOMContentLoaded',()=>{
 
     })
 })
+function addtocart(productId) {
+    axios.post('http://localhost:3000/cart',{productId:productId})
+    .then((response)=>{
+        //console.log(response);
+        if(response.status ===200){
+            notifyusers(response.data.message)
+            getCartDetails();
+        } else {
+           throw new Error(response.data.message)
+        }
+
+    })
+    .catch((err)=>{
+        notifyusers(err)
+    })
+   // getCartDetails();
+}
+
+function notifyusers(message) {
+   alert(`${message}`)
+}
+function getCartDetails() {
+    
+  axios.get("http://localhost:3000/cart")
+    .then((data) => {
+      if (data.status === 200) {
+        let products = data.data.products;
+        console.log(products)
+        let cartItems = document.getElementsByClassName("cart-items")[0];
+        cartItems.innerHTML = ''
+        // console.log(cartItems)
+        products.forEach((product) => {
+          let cartRow = document.createElement("div");
+           cartRow.className = "cart-row2";
+
+          let content = ` <div class="cart-item cart-column">
+               <div class="divider">
+               <img class="cart-item-image" src=${product.imageUrl} width="100" height="100">
+               
+               <span class="cart-item-title">${product.title}</span>
+               </div>
+               <span class="cart-price cart-column">${product.price}</span>
+               <div class="cart-quantity cart-column">
+               <input class="cart-quantity-input" type="number" value="${product.cartItem.quantity}" change="addtocart${product.id}">
+               <button class="btn btn-danger" type="button" onclick="removeItem(${product.id})">REMOVE</button>
+               </div>
+               </div>`;
+
+          cartRow.innerHTML = content;
+          cartItems.append(cartRow);
+        });
+
+        
+       
+        updateCartTotal();
+       // qtyChanged()
+      } else {
+        throw new Error("Something went wrong");
+      }
+    })
+    .catch((err) => {
+      notifyusers(err);
+    });
+}
+
+function removeItem(productId) {
+    // console.log(productId)
+   axios.post(`http://localhost:3000/cart-delete-item/${productId}`)
+   .then(response=>{
+    console.log(response)
+    
+   })
+  }
+
+    
