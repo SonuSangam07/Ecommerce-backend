@@ -455,7 +455,7 @@ purchasebtn.addEventListener('click',()=>{
 axios.post('http://localhost:3000/Order',{cartId:1})
 .then(response=>{
   let orderId=response.data.data[0][0].orderId
-  alert(`Your Order has been successfully placed with order Id ${orderId}, Thanks for Shopping from The Biker Zone`)
+  alert(`Your Order has been successfully placed with order Id ${orderId}, Thanks for Shopping`)
   getCartDetails();
   updateCartTotal()
 })

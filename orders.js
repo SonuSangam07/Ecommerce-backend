@@ -3,7 +3,7 @@ window.addEventListener("DOMContentLoaded", () => {
       .get("http://localhost:3000/Order")
   
       .then((response) => {
-       
+       console.log(response);
         let content = "";
         let parent = document.getElementById("orderItems");
         let child = document.createElement("div");
